@@ -65,6 +65,7 @@ class ScopeChain
   def <<(scope)
     # scope is a Hash
     @scope_chain << scope.clone
+    self
   end
 
   def last
@@ -88,11 +89,12 @@ class ScopeChain
 end
 
 def parse(parser_node, html_node, scope_chain)
-  # require 'debugger'; debugger
   scope_chain = scope_chain.clone
-  if parser_node.nil?
-    if html_node.nil?
+  if parser_node.nil? or html_node.nil?
+    if parser_node.nil? and html_node.nil?
       result = ParserResult.new valid: true
+    elsif html_node.nil?
+      result = ParserResult.new valid: false
     else
       result = ParserResult.new valid: false, partial: true, tail: html_node
     end
@@ -100,7 +102,7 @@ def parse(parser_node, html_node, scope_chain)
   else
     case parser_node.type
     when ParserNode::Types::SOMETHING
-      result, new_scope_chain = parse(parser_node.child, html_node, scope_chain)
+      result, new_scope_chain = parse(parser_node.next, html_node, scope_chain)
       unless result.valid?
         # it's not valid, keep trying
         result, new_scope_chain = parse(parser_node, html_node.next, scope_chain)
