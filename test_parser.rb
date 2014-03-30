@@ -303,4 +303,33 @@ class TestParser < Test::Unit::TestCase
     result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
     assert_equal false, result.valid?
   end
+
+  def test_parsing_regex_yielding_valid_result_captured_by_variable
+    # html - nil
+    # |
+    # body - nil
+    # |
+    # p - nil
+    # |
+    # {$var1} - nil
+    # |
+    # {/[0-9]+/} - nil
+    # |
+    # nil
+
+    parser_node =
+      (ParserNode.new ParserNode::Types::TAG, 'html',
+        (ParserNode.new ParserNode::Types::TAG, 'body',
+          (ParserNode.new ParserNode::Types::TAG, 'p',
+            (ParserNode.new ParserNode::Types::VARIABLE, 'var1',
+              (ParserNode.new ParserNode::Types::REGEX, /[0-9]+/, nil, nil),
+              nil),
+            nil),
+          nil),
+        nil)
+    html_doc = Nokogiri::HTML '<p>42</p>'
+    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+    assert_equal true, result.valid?
+    assert_equal '42', scope['var1']
+  end
 end
