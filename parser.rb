@@ -88,7 +88,37 @@ class ScopeChain
 
 end
 
-def parse(parser_node, html_node, scope_chain)
+# easy_parser "./template.ep" do |on|
+#   on.section do |scope|
+#     p "# #{scope['section']}"
+#   end
+#
+#   on.chapter do |scope|
+#     p "## #{scope['chapter']}"
+#   end
+#
+#   on.article_number do |scope|
+#     p "### Article #{scope['article_number']}"
+#   end
+#
+#   on.article_text do |scope|
+#     p "#{scope['article_text']}\n"
+#   end
+# end
+
+# TODO: I don't like monkey patching Proc. Let's find another way. From: http://mattsears.com/articles/2011/11/27/ruby-blocks-as-dynamic-callbacks
+class Proc
+  def callback(callable, *args)
+    self === Class.new do
+      method_name = callable.to_sym
+      define_method(method_name) { |&block| block.nil? ? true : block.call(*args) }
+      define_method("#{method_name}?") { true }
+      def method_missing(method_name, *args, &block) false; end
+    end.new
+  end
+end
+
+def parse(parser_node, html_node, scope_chain, &block)
   scope_chain = scope_chain.clone
   if parser_node.nil? or html_node.nil?
     if parser_node.nil? and html_node.nil?
@@ -102,26 +132,26 @@ def parse(parser_node, html_node, scope_chain)
   else
     case parser_node.type
     when ParserNode::Types::SOMETHING
-      result, new_scope_chain = parse(parser_node.next, html_node, scope_chain)
+      result, new_scope_chain = parse(parser_node.next, html_node, scope_chain, &block)
       unless result.valid?
         # it's not valid, keep trying
-        result, new_scope_chain = parse(parser_node, html_node.next, scope_chain)
+        result, new_scope_chain = parse(parser_node, html_node.next, scope_chain, &block)
       end
     when ParserNode::Types::MANY
       # creates a brand new scope chain per iteration
       per_iteration_scope_chain = scope_chain.clone << Hash.new # scope_chain is cloned so it can be used later
-      result, new_scope_chain = parse(parser_node.child, html_node, per_iteration_scope_chain)
+      result, new_scope_chain = parse(parser_node.child, html_node, per_iteration_scope_chain, &block)
       unless result.valid?
         if result.partial?
           # partial results, keep iterating
-          result, new_scope_chain = parse(parser_node, result.tail, scope_chain)
+          result, new_scope_chain = parse(parser_node, result.tail, scope_chain, &block)
         end
       end
     when ParserNode::Types::TAG
       if html_node.element? and parser_node.value == html_node.name
-        result, new_scope_chain = parse(parser_node.child, html_node.child, scope_chain)
+        result, new_scope_chain = parse(parser_node.child, html_node.child, scope_chain, &block)
         if result.valid?
-          result, temp_scope_chain = parse(parser_node.next, html_node.next, new_scope_chain)
+          result, temp_scope_chain = parse(parser_node.next, html_node.next, new_scope_chain, &block)
           new_scope_chain.merge! temp_scope_chain
         end
       else
@@ -144,11 +174,12 @@ def parse(parser_node, html_node, scope_chain)
       new_scope_chain = scope_chain
     when ParserNode::Types::SCOPE
       scope_chain << Hash.new
-      result, new_scope_chain = parse(parser_node.child, html_node, scope_chain)
+      result, new_scope_chain = parse(parser_node.child, html_node, scope_chain, &block)
     when ParserNode::Types::VARIABLE
-      result, new_scope_chain = parse(parser_node.child, html_node, scope_chain)
+      result, new_scope_chain = parse(parser_node.child, html_node, scope_chain, &block)
       if result.valid?
         new_scope_chain[parser_node.value] = result.ans
+        block.callback parser_node.value, new_scope_chain if block
       end
     end
   end
