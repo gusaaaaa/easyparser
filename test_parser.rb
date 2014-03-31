@@ -13,7 +13,7 @@ class TestParser < Test::Unit::TestCase
     # |    |
     # nil  nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'div', nil,
@@ -22,8 +22,10 @@ class TestParser < Test::Unit::TestCase
         ),
         nil
       )
-    html_doc = Nokogiri::HTML '<div></div>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<div></div>')
+
     assert_equal false, result.valid?
   end
 
@@ -36,14 +38,16 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'div', nil, nil),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<div></div>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<div></div>')
+
     assert_equal true, result.valid?
   end
 
@@ -56,15 +60,17 @@ class TestParser < Test::Unit::TestCase
     # |        |
     # nil      nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'div', nil,
           (ParserNode.new ParserNode::Types::TAG, 'p', nil, nil)),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<div></div><p></p>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<div></div><p></p>')
+
     assert_equal true, result.valid?
   end
 
@@ -77,14 +83,16 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'div', nil, nil),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<p></p>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p></p>')
+
     assert_equal false, result.valid?
     assert_equal false, result.partial?
   end
@@ -98,14 +106,16 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'div', nil, nil),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<div><p></p></div>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<div><p></p></div>')
+
     assert_equal false, result.valid?
     assert_equal true, result.partial?
     assert_equal 'p', result.tail.name
@@ -122,7 +132,7 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'div',
@@ -130,8 +140,10 @@ class TestParser < Test::Unit::TestCase
             nil),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<div>This is cool!</div>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<div>This is cool!</div>')
+
     assert_equal true, result.valid?
     assert_equal nil, result.ans
   end
@@ -149,7 +161,7 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'p',
@@ -159,8 +171,10 @@ class TestParser < Test::Unit::TestCase
             nil),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<p>This is cool!</p>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p>This is cool!</p>')
+
     assert_equal true, result.valid?
     assert_equal 'This is cool!', scope['var1']
   end
@@ -178,7 +192,7 @@ class TestParser < Test::Unit::TestCase
     # |                       |
     # nil                     nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'p',
@@ -193,8 +207,10 @@ class TestParser < Test::Unit::TestCase
           ),
         nil),
       nil)
-    html_doc = Nokogiri::HTML '<p>This is cool!</p><p>This is awesome!</p>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p>This is cool!</p><p>This is awesome!</p>')
+
     assert_equal true, result.valid?
     assert_equal 'This is cool!', scope['var1']
     assert_equal 'This is awesome!', scope['var2']
@@ -211,7 +227,7 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::MANY, '',
@@ -222,8 +238,10 @@ class TestParser < Test::Unit::TestCase
         ),
         nil
       )
-    html_doc = Nokogiri::HTML '<p></p><p></p><p></p>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p></p><p></p><p></p>')
+
     assert_equal true, result.valid?
   end
 
@@ -238,7 +256,7 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::MANY, '',
@@ -249,8 +267,10 @@ class TestParser < Test::Unit::TestCase
         ),
         nil
       )
-    html_doc = Nokogiri::HTML '<p></p><p></p><span></span>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p></p><p></p><span></span>')
+
     assert_equal false, result.valid?
   end
 
@@ -263,7 +283,7 @@ class TestParser < Test::Unit::TestCase
     # |      |
     # nil    nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::SOMETHING, '',
@@ -274,8 +294,10 @@ class TestParser < Test::Unit::TestCase
         ),
         nil
       )
-    html_doc = Nokogiri::HTML '<p></p><p></p><span></span>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p></p><p></p><span></span>')
+
     assert_equal true, result.valid?
   end
 
@@ -288,7 +310,7 @@ class TestParser < Test::Unit::TestCase
     # |      |
     # nil    nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::SOMETHING, '',
@@ -299,8 +321,10 @@ class TestParser < Test::Unit::TestCase
         ),
         nil
       )
-    html_doc = Nokogiri::HTML '<p></p><p></p><span></span><p></p>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p></p><p></p><span></span><p></p>')
+
     assert_equal false, result.valid?
   end
 
@@ -315,7 +339,7 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'div',
@@ -323,8 +347,10 @@ class TestParser < Test::Unit::TestCase
             nil),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<div>Forty two</div>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<div>Forty two</div>')
+
     assert_equal false, result.valid?
   end
 
@@ -341,7 +367,7 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'p',
@@ -351,8 +377,10 @@ class TestParser < Test::Unit::TestCase
             nil),
           nil),
         nil)
-    html_doc = Nokogiri::HTML '<p>42</p>'
-    result, scope = parse(parser_node, html_doc.root, ScopeChain.new)
+
+    easy_parser = EasyParser.new parse_tree
+    result, scope = easy_parser.run('<p>42</p>')
+
     assert_equal true, result.valid?
     assert_equal '42', scope['var1']
   end
@@ -370,7 +398,7 @@ class TestParser < Test::Unit::TestCase
     # |
     # nil
 
-    parser_node =
+    parse_tree =
       (ParserNode.new ParserNode::Types::TAG, 'html',
         (ParserNode.new ParserNode::Types::TAG, 'body',
           (ParserNode.new ParserNode::Types::TAG, 'p',
@@ -380,13 +408,15 @@ class TestParser < Test::Unit::TestCase
             nil),
           nil),
         nil)
+
     value = nil
-    html_doc = Nokogiri::HTML '<p>42</p>'
-    result, scope = parse parser_node, html_doc.root, ScopeChain.new do |on|
+    easy_parser = EasyParser.new parse_tree do |on|
       on.var1 do |scope|
         value = scope['var1']
       end
     end
+
+    result, scope = easy_parser.run('<p>42</p>')
 
     assert_equal true, result.valid?
     assert_equal '42', value

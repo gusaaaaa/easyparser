@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 class ParserNode
 
   module Types
@@ -118,71 +120,89 @@ class Proc
   end
 end
 
-def parse(parser_node, html_node, scope_chain, &block)
-  scope_chain = scope_chain.clone
-  if parser_node.nil? or html_node.nil?
-    if parser_node.nil? and html_node.nil?
-      result = ParserResult.new valid: true
-    elsif html_node.nil?
-      result = ParserResult.new valid: false
+class EasyParser
+  def initialize(parse_tree, &block)
+    @parse_tree = parse_tree
+    @callback = block
+  end
+
+  def run(html_source)
+    html_doc = Nokogiri::HTML html_source
+    if @callback
+      execute(@parse_tree, html_doc.root, ScopeChain.new, &@callback)
     else
-      result = ParserResult.new valid: false, partial: true, tail: html_node
-    end
-    new_scope_chain = scope_chain
-  else
-    case parser_node.type
-    when ParserNode::Types::SOMETHING
-      result, new_scope_chain = parse(parser_node.next, html_node, scope_chain, &block)
-      unless result.valid?
-        # it's not valid, keep trying
-        result, new_scope_chain = parse(parser_node, html_node.next, scope_chain, &block)
-      end
-    when ParserNode::Types::MANY
-      # creates a brand new scope chain per iteration
-      per_iteration_scope_chain = scope_chain.clone << Hash.new # scope_chain is cloned so it can be used later
-      result, new_scope_chain = parse(parser_node.child, html_node, per_iteration_scope_chain, &block)
-      unless result.valid?
-        if result.partial?
-          # partial results, keep iterating
-          result, new_scope_chain = parse(parser_node, result.tail, scope_chain, &block)
-        end
-      end
-    when ParserNode::Types::TAG
-      if html_node.element? and parser_node.value == html_node.name
-        result, new_scope_chain = parse(parser_node.child, html_node.child, scope_chain, &block)
-        if result.valid?
-          result, temp_scope_chain = parse(parser_node.next, html_node.next, new_scope_chain, &block)
-          new_scope_chain.merge! temp_scope_chain
-        end
-      else
-        result = ParserResult.new valid: false
-        new_scope_chain = scope_chain
-      end
-    when ParserNode::Types::TEXT
-      if html_node.text? and parser_node.value == html_node.text
-        result = ParserResult.new valid: true, ans: html_node.text
-      else
-        result = ParserResult.new valid: false
-      end
-      new_scope_chain = scope_chain
-    when ParserNode::Types::REGEX
-      if html_node.text? and parser_node.value =~ html_node.text
-        result = ParserResult.new valid: true, ans: html_node.text
-      else
-        result = ParserResult.new valid: false
-      end
-      new_scope_chain = scope_chain
-    when ParserNode::Types::SCOPE
-      scope_chain << Hash.new
-      result, new_scope_chain = parse(parser_node.child, html_node, scope_chain, &block)
-    when ParserNode::Types::VARIABLE
-      result, new_scope_chain = parse(parser_node.child, html_node, scope_chain, &block)
-      if result.valid?
-        new_scope_chain[parser_node.value] = result.ans
-        block.callback parser_node.value, new_scope_chain if block
-      end
+      execute(@parse_tree, html_doc.root, ScopeChain.new)
     end
   end
 
-  return result, new_scope_chain
+  private
+
+  def execute(parser_node, html_node, scope_chain, &block)
+    scope_chain = scope_chain.clone
+    if parser_node.nil? or html_node.nil?
+      if parser_node.nil? and html_node.nil?
+        result = ParserResult.new valid: true
+      elsif html_node.nil?
+        result = ParserResult.new valid: false
+      else
+        result = ParserResult.new valid: false, partial: true, tail: html_node
+      end
+      new_scope_chain = scope_chain
+    else
+      case parser_node.type
+      when ParserNode::Types::SOMETHING
+        result, new_scope_chain = execute(parser_node.next, html_node, scope_chain, &block)
+        unless result.valid?
+          # it's not valid, keep trying
+          result, new_scope_chain = execute(parser_node, html_node.next, scope_chain, &block)
+        end
+      when ParserNode::Types::MANY
+        # creates a brand new scope chain per iteration
+        per_iteration_scope_chain = scope_chain.clone << Hash.new # scope_chain is cloned so it can be used later
+        result, new_scope_chain = execute(parser_node.child, html_node, per_iteration_scope_chain, &block)
+        unless result.valid?
+          if result.partial?
+            # partial results, keep iterating
+            result, new_scope_chain = execute(parser_node, result.tail, scope_chain, &block)
+          end
+        end
+      when ParserNode::Types::TAG
+        if html_node.element? and parser_node.value == html_node.name
+          result, new_scope_chain = execute(parser_node.child, html_node.child, scope_chain, &block)
+          if result.valid?
+            result, temp_scope_chain = execute(parser_node.next, html_node.next, new_scope_chain, &block)
+            new_scope_chain.merge! temp_scope_chain
+          end
+        else
+          result = ParserResult.new valid: false
+          new_scope_chain = scope_chain
+        end
+      when ParserNode::Types::TEXT
+        if html_node.text? and parser_node.value == html_node.text
+          result = ParserResult.new valid: true, ans: html_node.text
+        else
+          result = ParserResult.new valid: false
+        end
+        new_scope_chain = scope_chain
+      when ParserNode::Types::REGEX
+        if html_node.text? and parser_node.value =~ html_node.text
+          result = ParserResult.new valid: true, ans: html_node.text
+        else
+          result = ParserResult.new valid: false
+        end
+        new_scope_chain = scope_chain
+      when ParserNode::Types::SCOPE
+        scope_chain << Hash.new
+        result, new_scope_chain = execute(parser_node.child, html_node, scope_chain, &block)
+      when ParserNode::Types::VARIABLE
+        result, new_scope_chain = execute(parser_node.child, html_node, scope_chain, &block)
+        if result.valid?
+          new_scope_chain[parser_node.value] = result.ans
+          block.callback parser_node.value, new_scope_chain if block
+        end
+      end
+    end
+
+    return result, new_scope_chain
+  end
 end
