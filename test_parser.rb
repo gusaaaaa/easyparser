@@ -262,4 +262,27 @@ class TestParser < Test::Unit::TestCase
     assert_equal '42', value
   end
 
+  def test_snippets_after_html_should_be_valid
+    source = '
+    <html>
+      {...}
+      <body>
+        <p></p>
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <head><title>Hola!</title></head>
+        <body>
+          <p></p>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
+
 end
