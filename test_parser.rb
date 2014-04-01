@@ -374,4 +374,31 @@ class TestParser < Test::Unit::TestCase
 
     assert_equal true, result.valid?
   end
+
+  def test_many_somethings_followed_by_tag_yielding_valid_result
+    source = '
+    <html>
+      <body>
+        {many}
+          {...}
+          <p></p>
+        {/many}
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <span></span>
+          <p></p>
+          <span></span>
+          <p></p>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
 end

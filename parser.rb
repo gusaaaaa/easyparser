@@ -246,14 +246,10 @@ class EasyParser
           result, new_scope_chain = execute(parser_node.next, html_node, scope_chain, &block)
         end
 
-        unless result.valid?
-          if result.partial?
-            # a partial result means that parser_node.next matches html_node, but its siblings don't
-            result = ParserResult.new valid: false
-          else
-            # it's not valid, keep trying
+        if not result.valid? and not result.partial?
+          # a partial result means that parser_node.next matches html_node, but its siblings don't
+          # it's not valid, keep trying
             result, new_scope_chain = execute(parser_node, next_node(html_node), scope_chain, &block)
-          end
         end
       when ParserNode::Types::MANY
         # creates a brand new scope chain per iteration
