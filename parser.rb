@@ -121,8 +121,9 @@ class Proc
 end
 
 class EasyParser
-  def initialize(source, &block)
-    @parse_tree = parse(source)
+  def initialize(ep_source, &block)
+    html_source = translate_to_html(ep_source)
+    @parse_tree = parse(html_source)
     @callback = block
   end
 
@@ -171,6 +172,19 @@ class EasyParser
     else
       next_node
     end
+  end
+
+  #TODO: Naive approach. Find a more robust solution.
+  def translate_to_html(ep_source)
+    ep_source
+      .gsub(/\{many\}/, '<ep-many>')
+      .gsub(/\{\/many\}/, '</ep-many>')
+      .gsub(/\{\.\.\.\}/, '<ep-something />')
+      .gsub(/\{scope\}/, '<ep-scope>')
+      .gsub(/\{\/scope\}/, '</ep-scope>')
+      .gsub(/\{\$([a-z]+\w*)\}/, '<ep-variable name="\1">')
+      .gsub(/\{\/\$[a-z]+\w*\}/, '</ep-variable>')
+      .gsub(/\{\/([^\}]+)\/\}/, '<ep-regex value="\1" />')
   end
 
   def build_parse_tree(html_node)

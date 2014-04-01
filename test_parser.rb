@@ -104,9 +104,7 @@ class TestParser < Test::Unit::TestCase
     source = '
     <html>
       <body>
-        <p>
-          <ep-variable name="var1">This is cool!</ep-variable>
-        </p>
+        <p>{$var1}This is cool!{/$var1}</p>
       </body>
     </html>
     '
@@ -144,9 +142,9 @@ class TestParser < Test::Unit::TestCase
     source = '
     <html>
       <body>
-        <ep-many>
+        {many}
           <p></p>
-        </ep-many>
+        {/many}
       </body>
     </html>
     '
@@ -161,9 +159,9 @@ class TestParser < Test::Unit::TestCase
     source = '
     <html>
       <body>
-        <ep-many>
+        {many}
           <p></p>
-        </ep-many>
+        {/many}
       </body>
     </html>
     '
@@ -178,7 +176,7 @@ class TestParser < Test::Unit::TestCase
     source = '
     <html>
       <body>
-        <ep-something />
+        {...}
         <span></span>
       </body>
     </html>
@@ -194,7 +192,7 @@ class TestParser < Test::Unit::TestCase
     source = '
     <html>
       <body>
-        <ep-something>
+        {...}
         <span></span>
       </body>
     </html>
@@ -211,9 +209,7 @@ class TestParser < Test::Unit::TestCase
     <html>
       <body>
         <div>
-          <ep-variable name="var1">
-            <ep-regex value="[0-9+]">
-          </ep-variable>
+          {$var1}{/[0-9]+/}{/$var1}
         </div>
       </body>
     </html>
@@ -230,9 +226,7 @@ class TestParser < Test::Unit::TestCase
     <html>
       <body>
         <p>
-          <ep-variable name="var1">
-            <ep-regex value="[0-9+]">
-          </ep-variable>
+          {$var1}{/[0-9]+/}{/$var1}
         </p>
       </body>
     </html>
@@ -250,9 +244,7 @@ class TestParser < Test::Unit::TestCase
     <html>
       <body>
         <p>
-          <ep-variable name="var1">
-            <ep-regex value="[0-9]+">
-          </ep-variable>
+          {$var1}{/[0-9]+/}{/$var1}
         </p>
       </body>
     </html>
