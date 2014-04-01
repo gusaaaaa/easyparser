@@ -127,8 +127,11 @@ class EasyParser
     @callback = block
   end
 
-  def run(html_source)
-    html_doc = Nokogiri::HTML html_source
+  def run(html_source, charset = 'ASCII-8BIT', encoding = 'utf-8')
+    html_doc = Nokogiri::HTML html_source, nil, charset
+    html_doc.encoding = encoding
+    html_doc.xpath('//comment()').remove # Remove comments from the HTML document
+
     #TODO: Must be a better way to do this...
     if @callback
       execute(@parse_tree, html_doc.root, ScopeChain.new, &@callback)
@@ -148,30 +151,24 @@ class EasyParser
   def child_node(html_node)
     # Hack to prevent reading empty text nodes
     child = html_node.child
-    if not child.nil? and child.text? and child.text.gsub(/[\n\s]/, '').empty?
-      if child.next
-        child.next
-      else
-        nil
-      end
-    else
-      child
+    is_empty = ( !child.nil? ) && child.text? && child.text.gsub(/[\r\n\s]/, '').empty?
+    while is_empty
+      child = child.next
+      is_empty = ( !child.nil? ) && child.text? && child.text.gsub(/[\r\n\s]/, '').empty?
     end
+    child
   end
 
   #TODO: Move to helper class
   def next_node(html_node)
     # Hack to prevent reading empty text nodes
     next_node = html_node.next
-    if not next_node.nil? and next_node.text? and next_node.text.gsub(/[\n\s]/, '').empty?
-      if next_node.next
-        next_node.next
-      else
-        nil
-      end
-    else
-      next_node
+    is_empty = ( !next_node.nil? ) && next_node.text? && next_node.text.gsub(/[\r\n\s]/, '').empty?
+    while is_empty
+      next_node = next_node.next
+      is_empty = ( !next_node.nil? ) && next_node.text? && next_node.text.gsub(/[\r\n\s]/, '').empty?
     end
+    next_node
   end
 
   #TODO: Naive approach. Find a more robust solution.
@@ -235,9 +232,10 @@ class EasyParser
         result, new_scope_chain = execute(parser_node.next, html_node, scope_chain, &block)
         unless result.valid?
           # it's not valid, keep trying
-          result, new_scope_chain = execute(parser_node, html_node.next, scope_chain, &block)
+          result, new_scope_chain = execute(parser_node, next_node(html_node), scope_chain, &block)
         end
       when ParserNode::Types::MANY
+        require 'debugger'; debugger
         # creates a brand new scope chain per iteration
         per_iteration_scope_chain = scope_chain.clone << Hash.new # scope_chain is cloned so it can be used later
         result, new_scope_chain = execute(parser_node.child, html_node, per_iteration_scope_chain, &block)
@@ -249,9 +247,9 @@ class EasyParser
         end
       when ParserNode::Types::TAG
         if html_node.element? and parser_node.value == html_node.name
-          result, new_scope_chain = execute(parser_node.child, html_node.child, scope_chain, &block)
+          result, new_scope_chain = execute(parser_node.child, child_node(html_node), scope_chain, &block)
           if result.valid?
-            result, temp_scope_chain = execute(parser_node.next, html_node.next, new_scope_chain, &block)
+            result, temp_scope_chain = execute(parser_node.next, next_node(html_node), new_scope_chain, &block)
             new_scope_chain.merge! temp_scope_chain
           end
         else

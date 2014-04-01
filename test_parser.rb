@@ -19,6 +19,21 @@ class TestParser < Test::Unit::TestCase
     assert_equal false, result.valid?
   end
 
+  def test_spaces_break_lines_and_comments_should_not_be_taken_into_account
+    source = '
+    <html>
+      <body>
+        <div></div>
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run("<html>\r\n  <body>\r\n    <!-- comment -->\r\n    <div></div>\r\n  </body>\r\n</html>")
+
+    assert_equal true, result.valid?
+  end
+
   def test_parsing_tags_without_siblings_yielding_valid_result
     source = '
     <html>
