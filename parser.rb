@@ -121,13 +121,14 @@ class Proc
 end
 
 class EasyParser
-  def initialize(parse_tree, &block)
-    @parse_tree = parse_tree
+  def initialize(source, &block)
+    @parse_tree = parse(source)
     @callback = block
   end
 
   def run(html_source)
     html_doc = Nokogiri::HTML html_source
+    #TODO: Must be a better way to do this...
     if @callback
       execute(@parse_tree, html_doc.root, ScopeChain.new, &@callback)
     else
@@ -136,6 +137,72 @@ class EasyParser
   end
 
   private
+
+  def parse(source)
+    html_doc = Nokogiri::HTML source
+    parse_tree = build_parse_tree(html_doc.root)
+  end
+
+  #TODO: Move to helper class
+  def child_node(html_node)
+    # Hack to prevent reading empty text nodes
+    child = html_node.child
+    if not child.nil? and child.text? and child.text.gsub(/[\n\s]/, '').empty?
+      if child.next
+        child.next
+      else
+        nil
+      end
+    else
+      child
+    end
+  end
+
+  #TODO: Move to helper class
+  def next_node(html_node)
+    # Hack to prevent reading empty text nodes
+    next_node = html_node.next
+    if not next_node.nil? and next_node.text? and next_node.text.gsub(/[\n\s]/, '').empty?
+      if next_node.next
+        next_node.next
+      else
+        nil
+      end
+    else
+      next_node
+    end
+  end
+
+  def build_parse_tree(html_node)
+    parse_tree = nil
+
+    if html_node.nil?
+      parse_tree = nil
+    elsif html_node.text?
+      #TODO: Throw error if html_node.children is not empty
+      parse_tree = ParserNode.new ParserNode::Types::TEXT, html_node.text, nil, build_parse_tree(next_node(html_node))
+    else
+      #TODO: Deserves a refactoring
+      case html_node.name
+        when 'ep-something'
+          #TODO: Throw error if html_node.children is not empty
+          parse_tree = ParserNode.new ParserNode::Types::SOMETHING, '', nil, build_parse_tree(next_node(html_node))
+        when 'ep-many'
+          parse_tree = ParserNode.new ParserNode::Types::MANY, '', build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
+        when 'ep-regex'
+          #TODO: Throw error if html_node.children is not empty
+          parse_tree = ParserNode.new ParserNode::Types::REGEX, /#{html_node.attr('value')}/, nil, build_parse_tree(next_node(html_node))
+        when 'ep-scope'
+          parse_tree = ParserNode.new ParserNode::Types::SCOPE, '', build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
+        when 'ep-variable'
+          parse_tree = ParserNode.new ParserNode::Types::VARIABLE, html_node.attr('name'), build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
+        else
+          parse_tree = ParserNode.new ParserNode::Types::TAG, html_node.name, build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
+      end
+    end
+
+    parse_tree
+  end
 
   def execute(parser_node, html_node, scope_chain, &block)
     scope_chain = scope_chain.clone
