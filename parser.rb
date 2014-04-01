@@ -221,7 +221,16 @@ class EasyParser
       if parser_node.nil? and html_node.nil?
         result = ParserResult.new valid: true
       elsif html_node.nil?
-        result = ParserResult.new valid: false
+        if parser_node.type == ParserNode::Types::SOMETHING
+          result, new_scope_chain = execute(parser_node.next, nil, scope_chain, &block)
+          if result.valid?
+            result = ParserResult.new valid: true
+          else
+            result = ParserResult.new valid: false
+          end
+        else
+          result = ParserResult.new valid: false
+        end
       else
         result = ParserResult.new valid: false, partial: true, tail: html_node
       end
@@ -229,13 +238,24 @@ class EasyParser
     else
       case parser_node.type
       when ParserNode::Types::SOMETHING
-        result, new_scope_chain = execute(parser_node.next, html_node, scope_chain, &block)
+        if parser_node.next.nil?
+          # {...} has no siblings so it should match whatever it comes
+          result = ParserResult.new valid: true
+          new_scope_chain = scope_chain
+        else
+          result, new_scope_chain = execute(parser_node.next, html_node, scope_chain, &block)
+        end
+
         unless result.valid?
-          # it's not valid, keep trying
-          result, new_scope_chain = execute(parser_node, next_node(html_node), scope_chain, &block)
+          if result.partial?
+            # a partial result means that parser_node.next matches html_node, but its siblings don't
+            result = ParserResult.new valid: false
+          else
+            # it's not valid, keep trying
+            result, new_scope_chain = execute(parser_node, next_node(html_node), scope_chain, &block)
+          end
         end
       when ParserNode::Types::MANY
-        require 'debugger'; debugger
         # creates a brand new scope chain per iteration
         per_iteration_scope_chain = scope_chain.clone << Hash.new # scope_chain is cloned so it can be used later
         result, new_scope_chain = execute(parser_node.child, html_node, per_iteration_scope_chain, &block)

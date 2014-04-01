@@ -202,7 +202,7 @@ class TestParser < Test::Unit::TestCase
     assert_equal true, result.valid?
   end
 
-  def test_something_test_yielding_invalid_result
+  def test_something_followed_by_tag_parsing_longer_document_yielding_invalid_result
     source = '
     <html>
       <body>
@@ -300,4 +300,78 @@ class TestParser < Test::Unit::TestCase
     assert_equal true, result.valid?
   end
 
+  def test_sandwich_something_inside_many_should_be_allowed
+    source = '
+    <html>
+      <body>
+        {many}
+          {...}
+            <p></p>
+          {...}
+        {/many}
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <span></span>
+          <p></p>
+          <div></div>
+          <span></span>
+          <p></p>
+          <div></div>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
+
+  def test_something_followed_by_tag_parsing_empty_node_yielding_invalid_result
+    source = '
+    <html>
+      <body>
+        {...}
+        <p></p>
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+        </body>
+      </html>
+    ')
+
+    assert_equal false, result.valid?
+  end
+
+  def test_tag_followed_by_something_yielding_valid_result
+    # opposite scenario as the previous one
+    source = '
+    <html>
+      <body>
+        <p></p>
+        {...}
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <p></p>
+          <span></span>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
 end
