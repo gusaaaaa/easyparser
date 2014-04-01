@@ -1,6 +1,5 @@
 require_relative 'parser'
 require 'test/unit'
-require 'nokogiri'
 
 class TestParser < Test::Unit::TestCase
 
