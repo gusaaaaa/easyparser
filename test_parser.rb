@@ -401,4 +401,126 @@ class TestParser < Test::Unit::TestCase
 
     assert_equal true, result.valid?
   end
+
+  def test_something_but_yielding_valid_result
+    source = '
+    <html>
+      <body>
+        {...but}
+          <p></p>
+        {/...but}
+        <div></div>
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <span></span>
+          <span></span>
+          <div></div>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
+
+  def test_something_but_yielding_invalid_result
+    source = '
+    <html>
+      <body>
+        {...but}
+          <p></p>
+        {/...but}
+        <div></div>
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <p></p>
+          <div></div>
+        </body>
+      </html>
+    ')
+
+    assert_equal false, result.valid?
+  end
+
+  def test_something_but_same_element_as_next_should_behave_as_something_operator
+    source = '
+    <html>
+      <body>
+        {...but}
+          <p></p>
+        {/...but}
+        <p></p>
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <span></span>
+          <span></span>
+          <p></p>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
+
+  def test_something_but_followed_by_nothing_yielding_valid_result
+    source = '
+    <html>
+      <body>
+        {...but}
+          <p></p>
+        {/...but}
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <span></span>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
+
+  def test_something_but_nothing_should_be_valid
+    source = '
+    <html>
+      <body>
+        {...but}
+        {/...but}
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+          <span></span>
+        </body>
+      </html>
+    ')
+
+    assert_equal true, result.valid?
+  end
 end

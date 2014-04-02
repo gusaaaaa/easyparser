@@ -4,12 +4,13 @@ class ParserNode
 
   module Types
     SOMETHING = 0
-    MANY      = 1
-    TAG       = 2
-    TEXT      = 3
-    REGEX     = 4
-    SCOPE     = 5
-    VARIABLE  = 6
+    BUT       = 1
+    MANY      = 2
+    TAG       = 3
+    TEXT      = 4
+    REGEX     = 5
+    SCOPE     = 6
+    VARIABLE  = 7
   end
 
   attr_reader :type, :value, :child, :next
@@ -182,6 +183,8 @@ class EasyParser
       .gsub(/\{\$([a-z]+\w*)\}/, '<ep-variable name="\1">')
       .gsub(/\{\/\$[a-z]+\w*\}/, '</ep-variable>')
       .gsub(/\{\/([^\}]+)\/\}/, '<ep-regex value="\1" />')
+      .gsub(/\{\.\.\.but\}/, '<ep-but>')
+      .gsub(/\{\/\.\.\.but\}/, '</ep-but>')
   end
 
   def build_parse_tree(html_node)
@@ -198,6 +201,8 @@ class EasyParser
         when 'ep-something'
           #TODO: Throw error if html_node.children is not empty
           parse_tree = ParserNode.new ParserNode::Types::SOMETHING, '', nil, build_parse_tree(next_node(html_node))
+        when 'ep-but'
+          parse_tree = ParserNode.new ParserNode::Types::BUT, '', build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
         when 'ep-many'
           parse_tree = ParserNode.new ParserNode::Types::MANY, '', build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
         when 'ep-regex'
@@ -228,6 +233,8 @@ class EasyParser
           else
             result = ParserResult.new valid: false
           end
+        elsif parser_node.type == ParserNode::Types::BUT
+          result = ParserResult.new valid: true
         else
           result = ParserResult.new valid: false
         end
@@ -249,7 +256,24 @@ class EasyParser
         if not result.valid? and not result.partial?
           # a partial result means that parser_node.next matches html_node, but its siblings don't
           # it's not valid, keep trying
-            result, new_scope_chain = execute(parser_node, next_node(html_node), scope_chain, &block)
+          result, new_scope_chain = execute(parser_node, next_node(html_node), scope_chain, &block)
+        end
+      when ParserNode::Types::BUT
+        if parser_node.child.nil?
+          # {...but}{/...but} is always valid
+            result = ParserResult.new valid: true
+            new_scope_chain = scope_chain
+        else
+          result, new_scope_chain = execute(parser_node.next, html_node, scope_chain, &block)
+
+          if not result.valid?
+            temp_result, temp_scope = execute(parser_node.child, html_node, scope_chain, &block)
+            if temp_result.valid? or temp_result.partial?
+              result = ParserResult.new valid: false
+            else
+              result, new_scope_chain = execute(parser_node, next_node(html_node), scope_chain, &block)
+            end
+          end
         end
       when ParserNode::Types::MANY
         # creates a brand new scope chain per iteration
