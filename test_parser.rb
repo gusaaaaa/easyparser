@@ -523,4 +523,26 @@ class TestParser < Test::Unit::TestCase
 
     assert_equal true, result.valid?
   end
+
+  def test_something_but_followed_by_tag_evaluating_nothing_should_not_be_valid
+    source = '
+    <html>
+      <body>
+        {...but}
+        {/...but}
+        <p></p>
+      </body>
+    </html>
+    '
+
+    easy_parser = EasyParser.new source
+    result, scope = easy_parser.run('
+      <html>
+        <body>
+        </body>
+      </html>
+    ')
+
+    assert_equal false, result.valid?
+  end
 end

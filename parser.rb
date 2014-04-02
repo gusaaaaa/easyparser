@@ -227,6 +227,8 @@ class EasyParser
         result = ParserResult.new valid: true
       elsif html_node.nil?
         if parser_node.type == ParserNode::Types::SOMETHING
+          # {...} evaluating nil should be valid
+          # {...}<p></p> evaluating nil should not be valid
           result, new_scope_chain = execute(parser_node.next, nil, scope_chain, &block)
           if result.valid?
             result = ParserResult.new valid: true
@@ -234,7 +236,14 @@ class EasyParser
             result = ParserResult.new valid: false
           end
         elsif parser_node.type == ParserNode::Types::BUT
-          result = ParserResult.new valid: true
+          # {...but}{/...but} evaluating nil should be valid
+          # {...but}{/...but}<p></p> evaluating nil should not be valid
+          result, new_scope_chain = execute(parser_node.next, nil, scope_chain, &block)
+          if result.valid?
+            result = ParserResult.new valid: true
+          else
+            result = ParserResult.new valid: false
+          end
         else
           result = ParserResult.new valid: false
         end
