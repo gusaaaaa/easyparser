@@ -77,8 +77,7 @@ class ScopeChain
   end
 
   def [](key)
-    # TODO: chaining
-    @scope_chain.last[key]
+    recursive_lookup @scope_chain, key
   end
 
   def []=(key, value)
@@ -89,6 +88,17 @@ class ScopeChain
     @scope_chain.last.merge! new_scope_chain.last
   end
 
+  private
+
+  def recursive_lookup(stack, key)
+    if stack.empty?
+      nil
+    elsif stack.last.has_key?(key)
+      stack.last[key]
+    else
+      recursive_lookup(stack[0..-2], key)
+    end
+  end
 end
 
 # TODO: I don't like monkey patching Proc. Let's find another way. From: http://mattsears.com/articles/2011/11/27/ruby-blocks-as-dynamic-callbacks
@@ -267,21 +277,18 @@ class EasyParser
           end
         end
       when ParserNode::Types::MANY
-        # creates a brand new scope chain per iteration
-        per_iteration_scope_chain = scope_chain.clone << Hash.new # scope_chain is cloned so it can be used later
-        result, new_scope_chain = execute(parser_node.child, html_node, per_iteration_scope_chain, &block)
-        unless result.valid?
-          if result.partial?
-            # a partial result means that at least the first iteration was valid
-            # we need to keep iterating
-            tail = result.tail
-            result, new_scope_chain = execute(parser_node, tail, scope_chain, &block)
-            if not result.valid?
-              # if the new result is not valid, we need to give the next sibling the chance to evaluate
-              # the remaining tokens
-              result, new_scope_chain = execute(parser_node.next, tail, scope_chain, &block)
-            end
-          end
+        iterate = true
+        tail = html_node
+        result = nil
+        while iterate
+          # creates a brand new scope chain per iteration
+          per_iteration_scope_chain = scope_chain.clone << Hash.new # scope_chain is cloned so it can be used later
+          tail = result.tail unless result.nil?
+          result, new_scope_chain = execute(parser_node.child, tail, per_iteration_scope_chain, &block)
+          iterate = result.partial?
+        end
+        if not result.valid?
+          result, new_scope_chain = execute(parser_node.next, tail, scope_chain, &block)
         end
       when ParserNode::Types::TAG
         if html_node.element? and parser_node.value == html_node.name

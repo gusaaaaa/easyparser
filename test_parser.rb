@@ -573,4 +573,105 @@ class TestParser < Test::Unit::TestCase
 
     assert_equal true, result.valid?
   end
+
+  def test_scope_should_look_for_variables_in_its_ancestors
+    source = '
+      <html>
+        <body>
+          {many}
+            <h1>{$heading}{/.*/}{/$heading}</h1>
+            {many}
+              <h2>{$subheading}{/.*/}{/$subheading}</h2>
+            {/many}
+          {/many}
+        </body>
+      </html>
+    '
+
+    last_heading = nil
+
+    easy_parser = EasyParser.new source do |on|
+      on.heading do |scope|
+      end
+      on.subheading do |scope|
+        last_heading = scope['heading']
+      end
+    end
+
+    result, scope = easy_parser.run '
+      <html>
+        <body>
+          <h1>1</h1>
+          <h2>1.1</h2>
+          <h2>1.2</h2>
+          <h1>2</h1>
+          <h2>2.1</h2>
+          <h2>2.2</h2>
+        </body>
+      </html>
+    '
+    assert_equal true, result.valid?
+    assert_equal '2', last_heading
+  end
+
+  def test_nested_many_operators
+    source = '
+      <html>
+        <body>
+          {many}
+            <span></span>
+            {many}
+              <p></p>
+            {/many}
+          {/many}
+        </body>
+      </html>
+    '
+
+    last_heading = nil
+
+    easy_parser = EasyParser.new source
+
+    result, scope = easy_parser.run '
+      <html>
+        <body>
+          <span></span>
+          <p></p>
+          <p></p>
+          <span></span>
+          <p></p>
+        </body>
+      </html>
+    '
+    assert_equal true, result.valid?
+  end
+
+  def test_many_yielding_partial
+    source = '
+      <html>
+        <body>
+          {many}
+            <span></span>
+          {/many}
+        </body>
+      </html>
+    '
+
+    last_heading = nil
+
+    easy_parser = EasyParser.new source
+
+    result, scope = easy_parser.run '
+      <html>
+        <body>
+          <span></span>
+          <span></span>
+          <p></p>
+        </body>
+      </html>
+    '
+    assert_equal true, result.partial?
+    assert_equal 'p', result.tail.name
+  end
+
 end
