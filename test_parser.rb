@@ -277,10 +277,10 @@ class TestParser < Test::Unit::TestCase
     assert_equal '42', value
   end
 
-  def test_snippets_after_html_should_be_valid
+  def test_commands_inside_html_head_yielding_valid_result
     source = '
     <html>
-      {...}
+      <head>{...}</head>
       <body>
         <p></p>
       </body>
