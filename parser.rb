@@ -91,24 +91,6 @@ class ScopeChain
 
 end
 
-# easy_parser "./template.ep" do |on|
-#   on.section do |scope|
-#     p "# #{scope['section']}"
-#   end
-#
-#   on.chapter do |scope|
-#     p "## #{scope['chapter']}"
-#   end
-#
-#   on.article_number do |scope|
-#     p "### Article #{scope['article_number']}"
-#   end
-#
-#   on.article_text do |scope|
-#     p "#{scope['article_text']}\n"
-#   end
-# end
-
 # TODO: I don't like monkey patching Proc. Let's find another way. From: http://mattsears.com/articles/2011/11/27/ruby-blocks-as-dynamic-callbacks
 class Proc
   def callback(callable, *args)
