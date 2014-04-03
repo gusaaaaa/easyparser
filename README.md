@@ -171,7 +171,6 @@ Plain text
 
 EasyParser is still a proof-of-concept and we have a myriad of things to fix and improve, including:
 
-- Turn EasyParser into a gem.
 - Code refactor, make it modular.
 - Add selector operator to go stright to the information we are looking for.
 - To be evaluated: incorporate partials [as in Rails](http://guides.rubyonrails.org/layouts_and_rendering.html#using-partials).

@@ -1,5 +1,5 @@
-require_relative 'parser'
 require 'test/unit'
+require 'easyparser'
 
 class TestParser < Test::Unit::TestCase
 

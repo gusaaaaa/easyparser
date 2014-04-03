@@ -1,6 +1,6 @@
 # encoding: UTF-8
 
-require_relative '../parser'
+require 'easyparser'
 require 'open-uri'
 
 ep_source = '
