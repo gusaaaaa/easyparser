@@ -104,7 +104,7 @@ easy_parser = EasyParser.new ep_source do |on|
     puts "# #{scope['heading1']}"
   end
   on.heading2 do |scope|
-    puts "# #{scope['heading2']}"
+    puts "## #{scope['heading2']}"
   end
   on.paragraph do |scope|
     puts scope['paragraph']
