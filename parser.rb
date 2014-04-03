@@ -290,8 +290,15 @@ class EasyParser
         result, new_scope_chain = execute(parser_node.child, html_node, per_iteration_scope_chain, &block)
         unless result.valid?
           if result.partial?
-            # partial results, keep iterating
-            result, new_scope_chain = execute(parser_node, result.tail, scope_chain, &block)
+            # a partial result means that at least the first iteration was valid
+            # we need to keep iterating
+            tail = result.tail
+            result, new_scope_chain = execute(parser_node, tail, scope_chain, &block)
+            if not result.valid?
+              # if the new result is not valid, we need to give the next sibling the chance to evaluate
+              # the remaining tokens
+              result, new_scope_chain = execute(parser_node.next, tail, scope_chain, &block)
+            end
           end
         end
       when ParserNode::Types::TAG
