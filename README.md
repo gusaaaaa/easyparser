@@ -2,29 +2,71 @@
 
 EasyParser is based on one fundamental principle: web scrapers should be understandable by the people that build the web (including designers). EasyParser allows for writing scrapers in the same language web pages are written, accelerating the creation process, maintainance and error correction.
 
-Let's say we need to scrape a recipe from allrecipes.com. The following scraper, written in EasyParser language, will extract the information from the ingredients block:
+Let's say you want to scrape [a recipe from allrecipes.com](http://allrecipes.com/recipe/grandmas-lemon-meringue-pie/). The following scraper, written in EasyParser language, will do the job:
 
 ```html
-<div>
-  <h3>{$ingredients}{/Ingredients.*/}{/$ingredients}</h3>
-  {...}
-  {many}
-    <ul>
-      {many}
-        <li>
-          <label>
+<html>
+  <head>{...}</head>
+  <body>
+    {...}
+    <form>
+      {...}
+      <div id="wrap">
+        {...}
+        <div id="content">
+          {...}
+          <div id="main">
+            <div id="center">
+              <div id="microformat">
+                <div id="hello">
+                  <div id="content-wrapper">
+                    {...}
+                    <div id="zoneRecipe">
+                      <div class="ingredients">
+                        {...}
+                        <div id="zoneIngredients">
+                          {...}
+                          <div class="ingred-left">
+                            <h3>{$ingredients}{/.*/}{/$ingredients}</h3>
+                            {...}
+                            {many}
+                              <ul>
+                                {many}
+                                  <li>
+                                    <label>
+                                      {...}
+                                      <p>
+                                        <span>{$amount}{/.*/}{/$amount}</span>
+                                        <span>{$ingredient}{/.*/}{/$ingredient}</span>
+                                      </p>
+                                    </label>
+                                  </li>
+                                {/many}
+                              </ul>
+                            {/many}
+                            {...but}<ul>{...}</ul>{/...but}
+                          </div>
+                          {...}
+                        </div>
+                        {...}
+                      </div>
+                      {...}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             {...}
-            <p>
-              <span>{$amount}{/.*/}{/$amount}</span>
-              <span>{$ingredient}{/.*/}{/$ingredient}</span>
-            </p>
-          </label>
-        </li>
-      {/many}
-    </ul>
-  {/many}
-  {...but}<ul>{...}</ul>{/...but}
-</div>
+          </div>
+          {...}
+        </div>
+        {...}
+      </div>
+      {...}
+    </form>
+    {...}
+  </body>
+</html>
 ```
 
 ## Disclamer
@@ -47,11 +89,15 @@ ep_source = '
   </html>
 '
 html_source = '
-  <h1>This is awesome!</h1>
-  <h2>Do we have something to say?</h2>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eros erat, iaculis nec faucibus non, tempus sit amet mi. Maecenas venenatis luctus mi. Ut ut arcu posuere, aliquet est sed, tempor nunc. Morbi dictum semper augue ut ultrices. Maecenas eget felis vel turpis blandit convallis ut non turpis. Cras consequat id dui quis tempor. Pellentesque sed convallis eros.</p>
-  <p>Duis pellentesque purus a urna tempor, in feugiat orci vestibulum. Nullam neque tellus, pharetra nec lectus sed, condimentum dictum lacus. Praesent aliquam tellus eget accumsan placerat. Nam non turpis vitae eros gravida mattis vel eu nibh. Phasellus interdum pulvinar ante, in convallis odio fermentum quis. In hac habitasse platea dictumst. Sed vehicula mollis dui, mollis commodo elit pulvinar nec. Fusce ante nisi, dictum ut adipiscing sodales, scelerisque ac arcu.</p>
-  <p>Fusce commodo posuere consectetur. Sed sed ante ut metus suscipit euismod vel sit amet sem. Nunc porttitor sed ipsum sit amet hendrerit. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam ac vulputate odio, et tempor lectus. Vestibulum pellentesque purus dignissim, molestie ligula at, aliquam dui. Praesent volutpat rhoncus felis sed auctor. Sed ultricies dui et eros mollis laoreet. Proin ultrices vel velit a egestas. Aliquam ullamcorper dictum facilisis. Cras placerat lectus consequat, ullamcorper massa vel, lobortis neque.</p>
+  <html>
+    <body>
+      <h1>This is awesome!</h1>
+      <h2>Do we have something to say?</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eros erat, iaculis nec faucibus non, tempus sit amet mi. Maecenas venenatis luctus mi. Ut ut arcu posuere, aliquet est sed, tempor nunc. Morbi dictum semper augue ut ultrices. Maecenas eget felis vel turpis blandit convallis ut non turpis. Cras consequat id dui quis tempor. Pellentesque sed convallis eros.</p>
+      <p>Duis pellentesque purus a urna tempor, in feugiat orci vestibulum. Nullam neque tellus, pharetra nec lectus sed, condimentum dictum lacus. Praesent aliquam tellus eget accumsan placerat. Nam non turpis vitae eros gravida mattis vel eu nibh. Phasellus interdum pulvinar ante, in convallis odio fermentum quis. In hac habitasse platea dictumst. Sed vehicula mollis dui, mollis commodo elit pulvinar nec. Fusce ante nisi, dictum ut adipiscing sodales, scelerisque ac arcu.</p>
+      <p>Fusce commodo posuere consectetur. Sed sed ante ut metus suscipit euismod vel sit amet sem. Nunc porttitor sed ipsum sit amet hendrerit. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam ac vulputate odio, et tempor lectus. Vestibulum pellentesque purus dignissim, molestie ligula at, aliquam dui. Praesent volutpat rhoncus felis sed auctor. Sed ultricies dui et eros mollis laoreet. Proin ultrices vel velit a egestas. Aliquam ullamcorper dictum facilisis. Cras placerat lectus consequat, ullamcorper massa vel, lobortis neque.</p>
+    </body>
+  </html>
   '
 easy_parser = EasyParser.new ep_source do |on|
   on.heading1 do |scope|
@@ -127,7 +173,8 @@ EasyParser is still a proof-of-concept and we have a myriad of things to fix and
 
 - Turn EasyParser into a gem.
 - Code refactor, make it modular.
-- Allow EasyParser commands between ```<html>``` tag and the ```<body>``` (should be fixed when fixing the failing test over there).
-- Evaluate processing scopes after finishing the evaluation.
+- Add selector operator to go stright to the information we are looking for.
+- To be evaluated: incorporate partials [as in Rails](http://guides.rubyonrails.org/layouts_and_rendering.html#using-partials).
+- To be evaluated: processing scopes only once the evaluation process has finished.
 - Regex capturing.
 - Test scopes more thoroughly.
