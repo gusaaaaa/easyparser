@@ -278,6 +278,7 @@ class EasyParser
         end
       when ParserNode::Types::MANY
         iterate = true
+        was_valid_once = false
         tail = html_node
         result = nil
         while iterate
@@ -286,9 +287,13 @@ class EasyParser
           tail = result.tail unless result.nil?
           result, new_scope_chain = execute(parser_node.child, tail, per_iteration_scope_chain, &block)
           iterate = result.partial?
+          was_valid_once = true if !was_valid_once and (result.valid? or result.partial?)
         end
-        if not result.valid?
-          result, new_scope_chain = execute(parser_node.next, tail, scope_chain, &block)
+        if was_valid_once
+          if not result.valid?
+            # give {many} next sibling the chance to evaluate the tail
+            result, new_scope_chain = execute(parser_node.next, tail, scope_chain, &block)
+          end
         end
       when ParserNode::Types::TAG
         if html_node.element? and parser_node.value == html_node.name

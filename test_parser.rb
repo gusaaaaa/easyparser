@@ -628,10 +628,7 @@ class TestParser < Test::Unit::TestCase
       </html>
     '
 
-    last_heading = nil
-
     easy_parser = EasyParser.new source
-
     result, scope = easy_parser.run '
       <html>
         <body>
@@ -674,4 +671,29 @@ class TestParser < Test::Unit::TestCase
     assert_equal 'p', result.tail.name
   end
 
+  def test_many_should_parse_at_least_one_element
+    source = '
+      <html>
+        <body>
+          {many}
+            <span></span>
+          {/many}
+        </body>
+      </html>
+    '
+
+    last_heading = nil
+
+    easy_parser = EasyParser.new source
+
+    result, scope = easy_parser.run '
+      <html>
+        <body>
+          <p><p>
+        </body>
+      </html>
+    '
+    assert_equal false, result.valid?
+    assert_equal false, result.partial?
+  end
 end
