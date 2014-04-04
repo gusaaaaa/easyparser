@@ -10,5 +10,5 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/gusaaaaa/easyparser'
   s.license     = 'MIT'
 
-  s.add_runtime_dependency 'nokogiri', '~> 1.6.1'
+  s.add_dependency 'nokogiri', '~> 1.6.1'
 end
