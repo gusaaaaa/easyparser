@@ -1,7 +1,7 @@
-require 'test/unit'
+require 'minitest/autorun'
 require 'easyparser'
 
-class TestParser < Test::Unit::TestCase
+describe EasyParser do
 
   def test_parsing_nil_should_yield_invalid_result
     source = '
