@@ -690,4 +690,41 @@ class TestParser < Test::Unit::TestCase
     assert_equal false, result.valid?
     assert_equal false, result.partial?
   end
+
+  def test_either_yielding_valid_result
+    source = '
+      <html>
+        <body>
+          {either}
+            <p></p>
+          {or}
+            <div></div>
+          {/either}
+        </body>
+      </html>
+    '
+
+    easy_parser = EasyParser.new source
+
+    result, scope = easy_parser.run '
+      <html>
+        <body>
+          <p></p>
+        </body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+
+    result, scope = easy_parser.run '
+      <html>
+        <body>
+          <div></div>
+        </body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
 end
