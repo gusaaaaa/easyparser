@@ -134,12 +134,8 @@ class TestParser < Test::Unit::TestCase
     source = '
     <html>
       <body>
-        <p>
-          <ep-variable name="var1">This is cool!</ep-variable>
-        </p>
-        <p>
-          <ep-variable name="var2">This is awesome!</ep-variable>
-        </p>
+        <p>{$var1}This is cool!{/$var1}</p>
+        <p>{$var2}This is awesome!{/$var2}</p>
       </body>
     </html>
     '
@@ -681,8 +677,6 @@ class TestParser < Test::Unit::TestCase
         </body>
       </html>
     '
-
-    last_heading = nil
 
     easy_parser = EasyParser.new source
 
