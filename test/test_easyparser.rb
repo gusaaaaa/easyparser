@@ -13,8 +13,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<div></div>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<div></div>')
 
     assert_equal false, result.valid?
   end
@@ -28,8 +28,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run("<html>\r\n  <body>\r\n    <!-- comment -->\r\n    <div></div>\r\n  </body>\r\n</html>")
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run("<html>\r\n  <body>\r\n    <!-- comment -->\r\n    <div></div>\r\n  </body>\r\n</html>")
 
     assert_equal true, result.valid?
   end
@@ -43,8 +43,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<div></div>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<div></div>')
 
     assert_equal true, result.valid?
   end
@@ -59,8 +59,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<div></div><p></p>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<div></div><p></p>')
 
     assert_equal true, result.valid?
   end
@@ -74,8 +74,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p></p>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p></p>')
 
     assert_equal false, result.valid?
     assert_equal false, result.partial?
@@ -90,8 +90,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<div><p></p></div>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<div><p></p></div>')
 
     assert_equal false, result.valid?
     assert_equal true, result.partial?
@@ -107,8 +107,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<div>This is cool!</div>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<div>This is cool!</div>')
 
     assert_equal true, result.valid?
     assert_equal nil, result.ans
@@ -123,8 +123,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p>This is cool!</p>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p>This is cool!</p>')
 
     assert_equal true, result.valid?
     assert_equal 'This is cool!', scope['var1']
@@ -140,8 +140,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p>This is cool!</p><p>This is awesome!</p>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p>This is cool!</p><p>This is awesome!</p>')
 
     assert_equal true, result.valid?
     assert_equal 'This is cool!', scope['var1']
@@ -159,8 +159,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p></p><p></p><p></p>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p></p><p></p><p></p>')
 
     assert_equal true, result.valid?
   end
@@ -176,8 +176,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p></p><p></p><span></span>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p></p><p></p><span></span>')
 
     assert_equal false, result.valid?
   end
@@ -192,8 +192,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p></p><p></p><span></span>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p></p><p></p><span></span>')
 
     assert_equal true, result.valid?
   end
@@ -208,8 +208,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p></p><p></p><span></span><p></p>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p></p><p></p><span></span><p></p>')
 
     assert_equal false, result.valid?
   end
@@ -225,8 +225,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<div>Forty two</div>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<div>Forty two</div>')
 
     assert_equal false, result.valid?
   end
@@ -242,8 +242,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('<p>42</p>')
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('<p>42</p>')
 
     assert_equal true, result.valid?
     assert_equal '42', scope['var1']
@@ -261,13 +261,13 @@ class TestParser < Test::Unit::TestCase
     '
 
     value = nil
-    easy_parser = EasyParser.new source do |on|
+    easyparser = EasyParser.new source do |on|
       on.var1 do |scope|
         value = scope['var1']
       end
     end
 
-    result, scope = easy_parser.run('<p>42</p>')
+    result, scope = easyparser.run('<p>42</p>')
 
     assert_equal true, result.valid?
     assert_equal '42', value
@@ -283,8 +283,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <head><title>Hola!</title></head>
         <body>
@@ -309,8 +309,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <span></span>
@@ -336,8 +336,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
         </body>
@@ -358,8 +358,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <p></p>
@@ -383,8 +383,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <span></span>
@@ -410,8 +410,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <span></span>
@@ -436,8 +436,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <p></p>
@@ -461,8 +461,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <span></span>
@@ -486,8 +486,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <span></span>
@@ -508,8 +508,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
           <span></span>
@@ -531,8 +531,8 @@ class TestParser < Test::Unit::TestCase
     </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run('
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run('
       <html>
         <body>
         </body>
@@ -555,8 +555,8 @@ class TestParser < Test::Unit::TestCase
         </body>
       </html>
     '
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run '
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run '
       <html>
         <body>
           <div>
@@ -586,7 +586,7 @@ class TestParser < Test::Unit::TestCase
 
     last_heading = nil
 
-    easy_parser = EasyParser.new source do |on|
+    easyparser = EasyParser.new source do |on|
       on.heading do |scope|
       end
       on.subheading do |scope|
@@ -594,7 +594,7 @@ class TestParser < Test::Unit::TestCase
       end
     end
 
-    result, scope = easy_parser.run '
+    result, scope = easyparser.run '
       <html>
         <body>
           <h1>1</h1>
@@ -624,8 +624,8 @@ class TestParser < Test::Unit::TestCase
       </html>
     '
 
-    easy_parser = EasyParser.new source
-    result, scope = easy_parser.run '
+    easyparser = EasyParser.new source
+    result, scope = easyparser.run '
       <html>
         <body>
           <span></span>
@@ -652,9 +652,9 @@ class TestParser < Test::Unit::TestCase
 
     last_heading = nil
 
-    easy_parser = EasyParser.new source
+    easyparser = EasyParser.new source
 
-    result, scope = easy_parser.run '
+    result, scope = easyparser.run '
       <html>
         <body>
           <span></span>
@@ -678,9 +678,9 @@ class TestParser < Test::Unit::TestCase
       </html>
     '
 
-    easy_parser = EasyParser.new source
+    easyparser = EasyParser.new source
 
-    result, scope = easy_parser.run '
+    result, scope = easyparser.run '
       <html>
         <body>
           <p><p>
@@ -704,9 +704,9 @@ class TestParser < Test::Unit::TestCase
       </html>
     '
 
-    easy_parser = EasyParser.new source
+    easyparser = EasyParser.new source
 
-    result, scope = easy_parser.run '
+    result, scope = easyparser.run '
       <html>
         <body>
           <p></p>
@@ -716,7 +716,7 @@ class TestParser < Test::Unit::TestCase
 
     assert_equal true, result.valid?
 
-    result, scope = easy_parser.run '
+    result, scope = easyparser.run '
       <html>
         <body>
           <div></div>
