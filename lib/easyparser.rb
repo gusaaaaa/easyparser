@@ -11,6 +11,8 @@ class ParserNode
     REGEX     = 5
     SCOPE     = 6
     VARIABLE  = 7
+    EITHER    = 8
+    OR        = 9
   end
 
   attr_reader :type, :value, :child, :next
@@ -177,6 +179,9 @@ class EasyParser
       .gsub(/\{\/([^\}]+)\/\}/, '<ep-regex value="\1" />')
       .gsub(/\{\.\.\.but\}/, '<ep-but>')
       .gsub(/\{\/\.\.\.but\}/, '</ep-but>')
+      .gsub(/\{either\}/, '<ep-either>')
+      .gsub(/\{\/either\}/, '</ep-either>')
+      .gsub(/\{or\}/, '<ep-or />')
   end
 
   def build_parse_tree(html_node)
@@ -204,7 +209,12 @@ class EasyParser
           parse_tree = ParserNode.new ParserNode::Types::SCOPE, '', build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
         when 'ep-variable'
           parse_tree = ParserNode.new ParserNode::Types::VARIABLE, html_node.attr('name'), build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
+        when 'ep-either'
+          parse_tree = ParserNode.new ParserNode::Types::EITHER, '', build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
+        when 'ep-or'
+          parse_tree = ParserNode.new ParserNode::Types::OR, '', nil, build_parse_tree(next_node(html_node))
         else
+          # it's a tag
           parse_tree = ParserNode.new ParserNode::Types::TAG, html_node.name, build_parse_tree(child_node(html_node)), build_parse_tree(next_node(html_node))
       end
     end
@@ -236,10 +246,14 @@ class EasyParser
           else
             result = ParserResult.new valid: false
           end
+        elsif parser_node.type == ParserNode::Types::OR
+          # {or} always evaluates to true
+          result = ParserResult.new valid: true
         else
           result = ParserResult.new valid: false
         end
       else
+        # parser_node is nil
         result = ParserResult.new valid: false, partial: true, tail: html_node
       end
       new_scope_chain = scope_chain
@@ -329,6 +343,31 @@ class EasyParser
           new_scope_chain[parser_node.value] = result.ans
           block.callback parser_node.value, new_scope_chain if block
         end
+      when ParserNode::Types::EITHER
+        result, new_scope_chain = execute(parser_node.child, html_node, scope_chain, &block)
+        unless result.valid?
+          node = parser_node.child
+          # look for the next {or}
+          while not node.nil? and node.type != ParserNode::Types::OR
+            node = node.next
+          end
+          if node.nil?
+            # not found. a partial result means that all the nodes inside the last {or}
+            # evaluated true, so the next step is to evaluate the remaining html elements.
+            if result.partial?
+              result, new_scope_chain = execute(parser_node.next, result.tail, scope_chain, &block)
+            end
+          else
+            temp_node = ParserNode.new ParserNode::Types::EITHER, '', node.next, parser_node.next
+            result, new_scope_chain = execute(temp_node, html_node, scope_chain, &block)
+          end
+        end
+        if result.valid?
+          result, new_scope_chain = execute(parser_node.next, next_node(html_node), scope_chain, &block)
+        end
+      when ParserNode::Types::OR
+        result = ParserResult.new valid: true
+        new_scope_chain = scope_chain
       end
     end
 

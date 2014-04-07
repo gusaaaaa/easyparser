@@ -727,4 +727,171 @@ class TestParser < Test::Unit::TestCase
     assert_equal true, result.valid?
   end
 
+  def test_either_evaluating_elements_in_inverted_order_yielding_valid_result
+    source = '
+      <html>
+        <body>
+          {either}
+            <p></p>
+          {or}
+            <div></div>
+          {/either}
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <div></div>
+        </body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
+  def test_either_order_yielding_invalid_result
+    source = '
+      <html>
+        <body>
+          {either}
+            <p></p>
+          {or}
+            <div></div>
+          {/either}
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <span></span>
+        </body>
+      </html>
+    '
+
+    assert_equal false, result.valid?
+  end
+
+  def test_either_followed_by_tag_yielding_valid_result
+    source = '
+      <html>
+        <body>
+          {either}
+            <p></p>
+          {or}
+            <div></div>
+          {/either}
+          <span></span>
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <p></p>
+          <span></span>
+        </body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <div></div>
+          <span></span>
+        </body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
+  def test_either_followed_by_tag_yielding_invalid_result
+    source = '
+      <html>
+        <body>
+          {either}
+            <p></p>
+          {or}
+            <div></div>
+          {/either}
+          <span></span>
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <p></p>
+          <strong></strong>
+        </body>
+      </html>
+    '
+
+    assert_equal false, result.valid?
+  end
+
+  def test_either_evaluating_one_element_yielding_valid_result
+    source = '
+      <html>
+        <body>
+          {either}
+            <p></p>
+          {/either}
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <p></p>
+        </body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
+  def test_either_evaluating_one_element_yielding_invalid_result
+    source = '
+      <html>
+        <body>
+          {either}
+            <p></p>
+          {/either}
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <div></div>
+        </body>
+      </html>
+    '
+
+    assert_equal false, result.valid?
+  end
+
 end
