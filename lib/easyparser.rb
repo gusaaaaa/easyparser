@@ -328,7 +328,19 @@ class EasyParser
         end
         new_scope_chain = scope_chain
       when ParserNode::Types::REGEX
-        if html_node.text? and parser_node.value =~ html_node.text
+        node = html_node
+        text = nil
+        while not node.nil? and (node.text? or node.name == "br")
+          text = "" if text.nil?
+          if node.text?
+            text << node.text
+          else
+            text << "\n"
+          end
+          node = next_node(node)
+        end
+
+        if not text.nil? and parser_node.value =~ text
           result = ParserResult.new valid: true, ans: html_node.text
         else
           result = ParserResult.new valid: false

@@ -894,4 +894,26 @@ class TestParser < Test::Unit::TestCase
     assert_equal false, result.valid?
   end
 
+  def test_br_should_be_treated_as_regular_text
+    source = '
+      <html>
+        <body>
+{/this
+is
+awesome!/}
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>this<br />is<br />awesome!</body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
 end
