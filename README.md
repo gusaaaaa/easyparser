@@ -168,6 +168,16 @@ Plain text
 {/$this_is_a_variable}
 ```
 
+### Either operator
+
+```
+{either}
+  <p></p>
+{or}
+  <div></div>
+{/either}
+```
+
 ## Roadmap
 
 EasyParser is still a proof-of-concept and we have a myriad of things to fix and improve, including:
