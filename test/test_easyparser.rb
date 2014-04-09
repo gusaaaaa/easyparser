@@ -916,4 +916,22 @@ awesome!/}
     assert_equal true, result.valid?
   end
 
+  def test_regex_wildcard_should_match_empty_tag
+    source = '
+      <html>
+        <body>{/.*/}</body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body></body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
 end

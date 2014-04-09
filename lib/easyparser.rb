@@ -223,6 +223,7 @@ class EasyParser
   end
 
   def execute(parser_node, html_node, scope_chain, &block)
+    # TODO: Please refactor me!
     scope_chain = scope_chain.clone
     if parser_node.nil? or html_node.nil?
       if parser_node.nil? and html_node.nil?
@@ -249,6 +250,12 @@ class EasyParser
         elsif parser_node.type == ParserNode::Types::OR
           # {or} always evaluates to true
           result = ParserResult.new valid: true
+        elsif parser_node.type == ParserNode::Types::REGEX
+          if parser_node.value =~ ""
+            result = ParserResult.new valid: true
+          else
+            result = ParserResult.new valid: false
+          end
         else
           result = ParserResult.new valid: false
         end
