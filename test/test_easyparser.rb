@@ -998,4 +998,35 @@ awesome!/}
     assert_equal true, result.valid?
   end
 
+  def test_variables_enclosed_in_either_should_share_the_same_scope_as_variables_outside
+    source = '
+      <html>
+        <body>
+          {either}
+            <p>{$var1}{/.*/}{/$var1}</p>
+          {or}
+            <div>{$var1}{/.*/}{/$var1}</div>
+          {/either}
+          <span>{$var2}{/.*/}{/$var2}</span>
+        </body>
+      </html>
+    '
+
+    var1 = nil
+
+    easyparser = EasyParser.new source do |on|
+      on.var2 do |scope|
+        var1 = scope['var1']
+      end
+    end
+
+    result, scope = easyparser.run '
+      <html>
+        <body><p>This is a text</p><span>This is some other text</span></body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+    assert_equal 'This is a text', var1
+  end
 end

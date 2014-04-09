@@ -407,7 +407,7 @@ class EasyParser
           end
         end
         if result.valid?
-          result, new_scope_chain = execute(parser_node.next, next_node(html_node), scope_chain, &block)
+          result, new_scope_chain = execute(parser_node.next, next_node(html_node), new_scope_chain, &block)
         end
       when ParserNode::Types::OR
         result = ParserResult.new valid: true
