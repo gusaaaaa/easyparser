@@ -226,6 +226,7 @@ class EasyParser
     # TODO: Please refactor me!
     scope_chain = scope_chain.clone
     if parser_node.nil? or html_node.nil?
+      new_scope_chain = scope_chain
       if parser_node.nil? and html_node.nil?
         result = ParserResult.new valid: true
       elsif html_node.nil?
@@ -252,10 +253,12 @@ class EasyParser
           result = ParserResult.new valid: true
         elsif parser_node.type == ParserNode::Types::REGEX
           if parser_node.value =~ ""
-            result = ParserResult.new valid: true
+            result = ParserResult.new valid: true, ans: ""
           else
             result = ParserResult.new valid: false
           end
+        elsif parser_node.type == ParserNode::Types::VARIABLE
+          result, new_scope_chain = execute(parser_node.child, nil, scope_chain, &block)
         else
           result = ParserResult.new valid: false
         end
@@ -263,7 +266,6 @@ class EasyParser
         # parser_node is nil
         result = ParserResult.new valid: false, partial: true, tail: html_node
       end
-      new_scope_chain = scope_chain
     else
       case parser_node.type
       when ParserNode::Types::SOMETHING

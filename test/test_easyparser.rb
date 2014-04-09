@@ -934,4 +934,26 @@ awesome!/}
     assert_equal true, result.valid?
   end
 
+  def test_variable_capturing_empty_should_be_valid
+    source = '
+      <html>
+        <body>{$var1}{/.*/}{/$var1}</body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source do |on|
+      on.var1 do |scope|
+        assert_equal '', scope['var1']
+      end
+    end
+
+    result, scope = easyparser.run '
+      <html>
+        <body></body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
 end
