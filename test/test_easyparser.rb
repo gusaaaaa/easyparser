@@ -956,4 +956,26 @@ awesome!/}
     assert_equal true, result.valid?
   end
 
+  def test_regex_should_capture_the_whole_text_concatenation
+    source = '
+      <html>
+        <body><p>{$var1}{/.*/}{/$var1}</p></body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source do |on|
+      on.var1 do |scope|
+        assert_equal "This\nis\nawesome!", scope['var1']
+      end
+    end
+
+    result, scope = easyparser.run '
+      <html>
+        <body><p>This<br />is<br />awesome!</p></body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
 end

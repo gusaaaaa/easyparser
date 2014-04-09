@@ -350,7 +350,7 @@ class EasyParser
         end
 
         if not text.nil? and parser_node.value =~ text
-          result = ParserResult.new valid: true, ans: html_node.text
+          result = ParserResult.new valid: true, ans: text
         else
           result = ParserResult.new valid: false
         end
@@ -365,6 +365,12 @@ class EasyParser
           block.callback parser_node.value, new_scope_chain if block
         end
       when ParserNode::Types::EITHER
+        # TODO: be careful while using {either} with regex children. This is because
+        # when capturing regex EasyParser converts <br /> tags into \n but does not
+        # forward the pointer to the end of the node concatenation "text"<br />"more text".
+        # As a result, when {either} tries to move the pointer to the next html_node, the
+        # result is <br /> instead of the node that follows the whole chunk of concatenated
+        # text. The recommendation is to use {either} always with tags.
         result, new_scope_chain = execute(parser_node.child, html_node, scope_chain, &block)
         unless result.valid?
           node = parser_node.child
