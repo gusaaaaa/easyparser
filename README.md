@@ -1,4 +1,5 @@
 # EasyParser
+[![Build Status](https://travis-ci.org/gusaaaaa/easyparser.svg?branch=master)](https://travis-ci.org/gusaaaaa/easyparser)
 
 EasyParser is based on one fundamental principle: web scrapers should be understandable by the people that build the web (including designers). EasyParser allows for writing scrapers in the same language web pages are written, accelerating the creation process, maintainance and error correction.
 
