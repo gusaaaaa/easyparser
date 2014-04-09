@@ -222,6 +222,34 @@ class EasyParser
     parse_tree
   end
 
+  def concatenate_text(html_node)
+    # TODO: Please refactor me!
+    node = html_node
+    text = ""
+    error = false
+    while not node.nil? and not error
+      if node.text?
+        text << node.text
+      else
+        case node.name
+        when 'br'
+          text << "\n"
+        when 'a'
+          if node.children.length == 1 and node.child.text?
+            text << "[#{node.child.text}](#{node.attr('href')})"
+          else
+            error = true
+          end
+        end
+      end
+      node = next_node(node)
+    end
+    if error
+      text = nil
+    end
+    text
+  end
+
   def execute(parser_node, html_node, scope_chain, &block)
     # TODO: Please refactor me!
     scope_chain = scope_chain.clone
@@ -337,18 +365,7 @@ class EasyParser
         end
         new_scope_chain = scope_chain
       when ParserNode::Types::REGEX
-        node = html_node
-        text = nil
-        while not node.nil? and (node.text? or node.name == "br")
-          text = "" if text.nil?
-          if node.text?
-            text << node.text
-          else
-            text << "\n"
-          end
-          node = next_node(node)
-        end
-
+        text = concatenate_text(html_node)
         if not text.nil? and parser_node.value =~ text
           result = ParserResult.new valid: true, ans: text
         else

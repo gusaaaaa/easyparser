@@ -894,7 +894,7 @@ class TestParser < Test::Unit::TestCase
     assert_equal false, result.valid?
   end
 
-  def test_br_should_be_treated_as_regular_text
+  def test_regex_capture_should_treat_br_as_regular_text
     source = '
       <html>
         <body>
@@ -910,6 +910,26 @@ awesome!/}
     result, scope = easyparser.run '
       <html>
         <body>this<br />is<br />awesome!</body>
+      </html>
+    '
+
+    assert_equal true, result.valid?
+  end
+
+  def test_regex_capture_should_treat_anchors_as_regular_text
+    source = '
+      <html>
+        <body>
+        {/an example of a \[link\]\(http:\/\/example.com\)/}
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>an example of a <a href="http://example.com">link</a></body>
       </html>
     '
 
