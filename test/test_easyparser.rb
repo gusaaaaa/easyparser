@@ -1029,4 +1029,27 @@ awesome!/}
     assert_equal true, result.valid?
     assert_equal 'This is a text', var1
   end
+
+  def test_regex_should_capture_only_text_br_and_anchors
+    source = '
+      <html>
+        <body>
+          <p>{/.*/}</p>
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new source
+
+    result, scope = easyparser.run '
+      <html>
+        <body>
+          <p>This is <span>some text</span></p>
+        </body>
+      </html>
+    '
+
+    assert_equal false, result.valid?
+  end
+
 end

@@ -240,6 +240,8 @@ class EasyParser
           else
             error = true
           end
+        else
+          error = true
         end
       end
       node = next_node(node)
