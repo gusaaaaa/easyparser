@@ -1098,4 +1098,77 @@ awesome!/}
     assert_equal false, result.valid?
   end
 
+  def test_something_parser_with_multiple_children
+    html_source = '
+      <html>
+        <body>
+          <p>First</p>
+          <p>Second</p>
+          <p>Third</p>
+        </body>
+      </html>
+    '
+
+    # example 1
+    ep_template = '
+      <html>
+        <body>
+          {...}
+          <p>{$last}{/.*/}{/$last}</p>
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new ep_template
+    result, scope = easyparser.run html_source
+
+    assert_equal true, result.valid?
+    assert_equal 'Third', scope['last']
+
+    # example 2
+    ep_template = '
+      <html>
+        <body>
+          {...}
+          <p>Third</p>
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new ep_template
+    result, scope = easyparser.run html_source
+
+    assert_equal true, result.valid?
+
+    # example 3
+    ep_template = '
+      <html>
+        <body>
+          {...}
+          <p>Second</p>
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new ep_template
+    result, scope = easyparser.run html_source
+
+    assert_equal false, result.valid?
+    assert_equal true, result.partial?
+
+    # example 4
+    ep_template = '
+      <html>
+        <body>
+          {...}
+          <p>{/.*/}</p>
+        </body>
+      </html>
+    '
+
+    easyparser = EasyParser.new ep_template
+    result, scope = easyparser.run html_source
+
+    assert_equal true, result.valid?
+  end
 end
