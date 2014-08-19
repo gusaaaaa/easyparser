@@ -116,9 +116,9 @@ class Proc
 end
 
 class EasyParser
-  def initialize(ep_source, &block)
-    html_source = translate_to_html(ep_source)
-    @parse_tree = parse(html_source)
+  def initialize(ep_template, &block)
+    html_template = translate_to_html(ep_template)
+    @parse_tree = parse(html_template) # returns an instance of ParserNode
     @callback = block
   end
 
@@ -137,8 +137,8 @@ class EasyParser
 
   private
 
-  def parse(source)
-    html_doc = Nokogiri::HTML source
+  def parse(html_template)
+    html_doc = Nokogiri::HTML html_template
     parse_tree = build_parse_tree(html_doc.root)
   end
 
@@ -167,8 +167,8 @@ class EasyParser
   end
 
   #TODO: Naive approach. Find a more robust solution.
-  def translate_to_html(ep_source)
-    ep_source
+  def translate_to_html(ep_template)
+    ep_template
       .gsub(/\{many\}/, '<ep-many>')
       .gsub(/\{\/many\}/, '</ep-many>')
       .gsub(/\{\.\.\.\}/, '<ep-something />')
